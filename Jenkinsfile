@@ -52,6 +52,18 @@ pipeline{
             }
         }
         
+        stage('Deploy to Nexus') {
+            steps {
+                sh 'mvn deploy:deploy-file \
+                    -Dfile=target/your-application.jar \
+                    -Durl=http://13.232.78.91/:32000/releases/ \
+                    -DrepositoryId=nexus-releases \
+                    -DgroupId=http://13.232.78.91/:32000/repository/nuget-group/ \
+                    -DartifactId=your-artifact-id \
+                    -Dversion=${env.BUILD_NUMBER}'
+            }
+        }
+        
          stage("Build"){
             steps{
                 sh " mvn clean install"
