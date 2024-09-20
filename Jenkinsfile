@@ -1,4 +1,3 @@
-
 pipeline{
     agent any
     tools{
@@ -78,7 +77,7 @@ pipeline{
 //            }
 //        }
         
-         stage("Build"){
+        stage("Build"){
             steps{
                 sh " mvn clean install"
             }
@@ -102,7 +101,23 @@ pipeline{
                 sh " trivy image shubhammutkalwar/taskmaster:latest > trivyimage.txt "
             }
         }
-    }
+        stage('Deploy To Kubernetes') {
+            steps {
+               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.1.85:6443') {
+                        sh "kubectl apply -f deployment-service.yml"
+                }
+            }
+        }
+        
+        stage('Verify the Deployment') {
+            steps {
+               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.1.85:6443') {
+                        sh "kubectl get pods -n webapps"
+                        sh "kubectl get svc -n webapps"
+                }
+            }
+        }
+    }    
     post {
      always {
         emailext attachLog: true,
