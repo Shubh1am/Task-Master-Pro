@@ -1,3 +1,4 @@
+
 pipeline{
     agent any
     tools{
@@ -26,7 +27,8 @@ pipeline{
         }
         stage('File System Scan') {
             steps {
-                sh "trivy fs --format table -o trivy-fs-report.html ."
+  //              sh "trivy fs --format table -o trivy-fs-report.html ."
+                  sh "trivy fs . > trivyfs.txt"
             }
         }
         stage("Sonarqube Analysis"){
@@ -47,22 +49,24 @@ pipeline{
         }
         stage("OWASP Dependency Check"){
             steps{
+               sh' mvn org.owasp:dependency-check-maven:6.0.0:check'
+
                 dependencyCheck additionalArguments: '--scan ./ --format HTML ', odcInstallation: 'DP'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+               // dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
         
-        stage('Deploy to Nexus') {
-            steps {
-                sh 'mvn deploy:deploy-file \
-                    -Dfile=target/your-application.jar \
-                    -Durl=http://13.232.78.91/:32000/releases/ \
-                    -DrepositoryId=nexus-releases \
-                    -DgroupId=http://13.232.78.91/:32000/repository/nuget-group/ \
-                    -DartifactId=your-artifact-id \
-                    -Dversion=${env.BUILD_NUMBER}'
-            }
-        }
+//        stage('Deploy to Nexus') {
+//            steps {
+//                sh 'mvn deploy:deploy-file \
+//                    -Dfile=target/your-application.jar \
+//                    -Durl=http://65.2.150.34/:32000/releases/ \
+//                    -DrepositoryId=nexus-releases \
+//                    -DgroupId=http://65.2.150.34/:32000/repository/nuget-group/ \
+//                    -DartifactId=your-artifact-id \
+//                    -Dversion=${env.BUILD_NUMBER}'
+//            }
+//        }
         
          stage("Build"){
             steps{
@@ -73,7 +77,7 @@ pipeline{
         stage("Docker Build & Push"){
             steps{
                 script{
-                   withDockerRegistry(credentialsId: '58be877c-9294-410e-98ee-6a959d73b352', toolName: 'docker') {
+                   withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
                         
                         sh "docker build -t image1 ."
                         sh "docker tag image1 shubhammutkalwar/taskmaster:latest "
@@ -85,7 +89,7 @@ pipeline{
         
         stage("TRIVY"){
             steps{
-                sh " trivy image shubhammutkalwar/taskmaster:latest"
+                sh " trivy image shubhammutkalwar/taskmaster:latest . > trivyimage.txt "
             }
         }
     }
