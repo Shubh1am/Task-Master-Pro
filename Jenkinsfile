@@ -114,6 +114,9 @@ pipeline{
                withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.1.85:6443') {
                         sh "kubectl get pods -n webapps"
                         sh "kubectl get svc -n webapps"
+                        sleep 30
+                        sh "kubectl get pods -n webapps"
+
                 }
             }
         }
