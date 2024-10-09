@@ -46,6 +46,11 @@ pipeline{
                 }
             } 
         }
+        stage("Build"){
+            steps{
+                sh " mvn clean install"
+            }
+        }        
         stage("OWASP Dependency Check"){
             steps{
                sh' mvn org.owasp:dependency-check-maven:6.0.0:check'
@@ -115,7 +120,7 @@ pipeline{
                         sh "kubectl get pods -n webapps"
                         sh "kubectl get svc -n webapps"
                         sleep 30
-                        sh "kubectl get pods -n webapps"
+                        sh "kubectl get pods -n webapps -o wide"
 
                 }
             }
